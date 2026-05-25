@@ -1,6 +1,8 @@
 # Chart Generator
 
-Produces publication-quality matplotlib/seaborn charts with consistent styling.
+Produces FT-styled, insight-driven charts with data-backed annotations.
+
+**Companion skill:** Always apply the `chart_commentary` skill alongside this one. It defines the FT visual theme, annotation placement rules, and title standards. Every chart must follow both skills.
 
 ## Trigger
 
@@ -10,22 +12,7 @@ Fires whenever an agent needs to produce a visualization. All chart creation in 
 
 When asked to create a chart:
 
-1. **Use this standard style setup** at the top of every chart script:
-   ```python
-   import matplotlib.pyplot as plt
-   import seaborn as sns
-
-   sns.set_theme(style="whitegrid", font_scale=1.1)
-   plt.rcParams.update({
-       "figure.figsize": (10, 6),
-       "figure.dpi": 300,
-       "axes.titlesize": 14,
-       "axes.labelsize": 12,
-       "legend.fontsize": 10,
-       "savefig.bbox": "tight",
-       "savefig.pad_inches": 0.2,
-   })
-   ```
+1. **Apply the FT theme from `chart_commentary` skill.** Do not use seaborn default themes. The FT theme (cream background, teal/claret palette, horizontal-only gridlines) is the standard for all charts in this system.
 
 2. **Chart types available:** line, bar, heatmap, scatter, box. Choose based on what the data shows:
    - Time series → line chart
@@ -41,18 +28,25 @@ When asked to create a chart:
    - `presc_` for prescriptive analysis
    - Example: `outputs/charts/desc_price_trend_by_type.png`
 
-4. **Required elements on every chart:**
-   - Descriptive title (what the chart shows, not just variable names)
-   - Labeled axes with units where applicable (e.g., "Average Price ($)")
-   - Legend if multiple series
-   - No chartjunk — remove unnecessary gridlines, borders, decorations
+4. **Title is the insight** (from `chart_commentary` skill):
+   - Title states a quantified finding, not a description
+   - Subtitle connects the finding to a business decision
+   - No vague language, no causal claims the data can't support
 
-5. **Color palette:** Use `sns.color_palette("husl", n)` for categorical data, `sns.color_palette("coolwarm", n)` for diverging data. Use consistent colors for conventional (blue) and organic (green) throughout all charts.
+5. **One annotation max** (from `chart_commentary` skill):
+   - Arrow target coordinates read from data, not hardcoded
+   - Mark target with a dot
+   - Text placed in clear space — never on top of a data line
+   - Content states specific date, value, or comparison
 
-6. **Always** create the `outputs/charts/` directory before saving:
+6. **Series labels:** Inline at end of each line, color-matched. No legend box.
+
+7. **Source line:** Bottom-left, 8pt, citing file + columns + filters.
+
+8. **Always** create the `outputs/charts/` directory before saving:
    ```python
    from pathlib import Path
    Path("outputs/charts").mkdir(parents=True, exist_ok=True)
    ```
 
-7. **Return** the file path of the saved chart so the calling agent can embed it in its report.
+9. **Return** the file path of the saved chart so the calling agent can embed it in its report.

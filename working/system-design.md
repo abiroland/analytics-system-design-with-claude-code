@@ -171,10 +171,20 @@ Skipping layers produces unfounded conclusions. Prescriptive without diagnostic 
 - **Outputs:** Forecast DataFrame with point estimate + 80%/95% prediction intervals. Accuracy metrics on test set: RMSE, MAE, MAPE. Model artifact saved to `outputs/models/`.
 
 **`chart_generator`**
-- **Description:** Produces publication-quality matplotlib/seaborn charts with consistent styling — labeled axes, legend, no chartjunk, 300 DPI PNG output.
+- **Description:** Produces FT-styled, insight-driven charts with data-backed annotations. Always applies the `chart_commentary` skill alongside.
 - **Trigger:** Fires whenever an agent needs to produce a visualization. All chart creation routes through this skill for visual consistency.
 - **Inputs:** Chart type (line, bar, heatmap, scatter, box), data, x/y columns, grouping, title, filename prefix.
 - **Outputs:** PNG file saved to `outputs/charts/{prefix}_{timestamp}.png`. Returns file path for embedding in reports.
+- **Companion:** `chart_commentary` — must be applied to every chart.
+
+**`chart_commentary`**
+- **Description:** Defines the FT visual theme, annotation placement rules, and insight-driven title standards. Companion to `chart_generator` — every chart must follow both skills.
+- **Trigger:** Fires alongside `chart_generator` on every chart.
+- **Rules enforced:**
+  - FT theme: cream background (#FFF1E5), teal (#0D7680) / claret (#990F3D) palette, horizontal-only gridlines, no top/right/left spines, inline series labels (no legend box), source citation at bottom.
+  - Title states a quantified finding, not a description. Subtitle connects the finding to a business decision.
+  - At most one annotation per chart. Arrow target coordinates read from data, not hardcoded. Text placed in clear space — never on top of a data line.
+  - No vague language in titles ("acts as," "suggests," "appears to"). No causal claims the data cannot support. No invented mechanisms.
 
 ### Knowledge — What the System Remembers Across Sessions
 
@@ -208,10 +218,15 @@ STEP  FILE                                              DEPENDS ON        WHAT I
                                                                           RUN IT after creating.
 
  2    .claude/skills/chart-generator/skill.md            nothing
-                                                                          Skill prompt: standardized matplotlib/seaborn
-                                                                          chart production. Every agent uses this —
-                                                                          build it first so all downstream agents
-                                                                          have it.
+                                                                          Skill prompt: FT-styled, insight-driven chart
+                                                                          production. Every agent uses this — build it
+                                                                          first so all downstream agents have it.
+
+2b    .claude/skills/chart-commentary/skill.md          step 2
+                                                                          Companion to chart_generator. Defines FT theme,
+                                                                          annotation placement rules, and title standards.
+                                                                          Encodes: title = quantified insight, one annotation
+                                                                          max with data-read coordinates, no vague language.
 
  3    .claude/skills/seasonality-decomposition/skill.md  nothing
                                                                           Skill prompt: STL decomposition on a time
@@ -279,7 +294,7 @@ data/raw/avocado.csv
        ▼
   [1] src/data_prep.py ──► data/processed/*
        │
-       ├──── [2] chart_generator ◄──────────────────────────── (used by all agents)
+       ├──── [2] chart_generator + [2b] chart_commentary ◄──── (used by all agents)
        ├──── [3] seasonality_decomposition
        ├──── [4] regional_comparison
        │
